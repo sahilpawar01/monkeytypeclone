@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MonkeyType Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-black dark:text-white min-h-screen flex items-center justify-center">
+    <div class="max-w-3xl w-full p-4" tabindex="0">
+        <header class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">MonkeyType Clone</h1>
+            <button id="mode-toggle" class="bg-gray-200 text-black dark:bg-gray-800 dark:text-white p-2 rounded">Toggle Mode</button>
+        </header>
+        <div id="text-display" class="mb-4 text-lg leading-relaxed whitespace-pre-wrap"></div>
+        <div id="stats" class="flex justify-around mb-4">
+            <span id="timer">Time: 0s</span>
+            <span id="wpm" class="hidden">WPM: 0</span>
+            <span id="accuracy" class="hidden">Accuracy: 0%</span>
+        </div>
+        <button id="restart" class="bg-blue-500 text-white p-2 rounded">Restart</button>
+    </div>
+    <script>
+        // Array of common words for random generation
+        const words = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I', 'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me'];
+
+        // Function to generate random text
+        function generateText() {
+            return Array.from({length: 50}, () => words[Math.floor(Math.random() * words.length)]).join(' ');
+        }
+
+        // Initialize state variables
+        let text = generateText();
+        let currentIndex = 0;
+        let totalKeystrokes = 0;
+        let correctKeystrokes = 0;
+        let timerInterval;
+        let startTime;
+        const textDisplay = document.getElementById('text-display');
+
+        // Function to create and display the text with spans
+        function createTextDisplay() {
+            textDisplay.innerHTML = '';
+            text.split('').forEach(char => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                span.classList.add('transition-colors', 'duration-200', 'text-gray-600', 'dark:text-gray-400');
+                textDisplay.appendChild(span);
+            });
+            if (text.length > 0) {
+                textDisplay.children[0].classList.add('underline');
+            }
+        }
+
+        // Keydown event handler for typing logic
+        window.addEventListener('keydown', (event) => {
+            const key = event.key;
+            if (key === 'Backspace') {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    const span = textDisplay.children[currentIndex];
+                    span.classList.remove('text-green-500', 'text-red-500');
+                    span.classList.add('text-gray-600', 'dark:text-gray-400');
+                    if (currentIndex < text.length) {
+                        textDisplay.children[currentIndex].classList.add('underline');
+                        if (currentIndex + 1 < text.length) {
+                            textDisplay.children[currentIndex + 1].classList.remove('underline');
+                        }
+                    }
+                }
+            } else if (key.length === 1) {
+                if (currentIndex === 0) {
+                    startTime = Date.now();
+                    timerInterval = setInterval(updateTimer, 1000);
+                }
+                totalKeystrokes++;
+                const span = textDisplay.children[currentIndex];
+                span.classList.remove('text-gray-600', 'dark:text-gray-400', 'underline');
+                if (key === text[currentIndex]) {
+                    correctKeystrokes++;
+                    span.classList.add('text-green-500');
+                } else {
+                    span.classList.add('text-red-500');
+                }
+                currentIndex++;
+                if (currentIndex < text.length) {
+                    textDisplay.children[currentIndex].classList.add('underline');
+                }
+                if (currentIndex === text.length) {
+                    clearInterval(timerInterval);
+                    calculateResults();
+                }
+            }
+            event.preventDefault();
+        });
+
+        // Update timer display every second
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timer').textContent = `Time: ${elapsed}s`;
+        }
+
+        // Calculate and display WPM and accuracy when test is complete
+        function calculateResults() {
+            const timeInMinutes = (Date.now() - startTime) / 60000;
+            const wpm = Math.round((totalKeystrokes / 5) / timeInMinutes);
+            const accuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100);
+            document.getElementById('wpm').textContent = `WPM: ${wpm}`;
+            document.getElementById('accuracy').textContent = `Accuracy: ${accuracy}%`;
+            document.getElementById('wpm').classList.remove('hidden');
+            document.getElementById('accuracy').classList.remove('hidden');
+        }
+
+        // Restart button event listener
+        document.getElementById('restart').addEventListener('click', () => {
+            text = generateText();
+            currentIndex = 0;
+            totalKeystrokes = 0;
+            correctKeystrokes = 0;
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = 'Time: 0s';
+            document.getElementById('wpm').classList.add('hidden');
+            document.getElementById('accuracy').classList.add('hidden');
+            createTextDisplay();
+        });
+
+        // Mode toggle button event listener
+        document.getElementById('mode-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Initialize the text display on load
+        createTextDisplay();
+    </script>
+</body>
+</html>

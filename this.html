@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MonkeyType Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-black dark:text-white min-h-screen flex items-center justify-center">
+    <div class="max-w-3xl w-full p-4" tabindex="0">
+        <header class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold">MonkeyType Clone</h1>
+            <button id="mode-toggle" class="bg-gray-200 text-black dark:bg-gray-800 dark:text-white p-2 rounded">
+                Toggle Mode
+            </button>
+        </header>
+        <div id="text-display" class="mb-4 text-lg leading-relaxed font-mono"></div>
+        <div id="stats" class="flex justify-around mb-4 opacity-0 transition-opacity duration-300">
+            <span id="timer">Time: 0s</span>
+            <span id="wpm">WPM: 0</span>
+            <span id="accuracy">Accuracy: 0%</span>
+        </div>
+        <button id="restart" class="bg-blue-500 text-white p-2 rounded">Restart</button>
+    </div>
+    <script>
+        // List of common words
+        const words = [
+            'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',
+            'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+            'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+            'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what',
+            'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me'
+        ];
+
+        // Function to generate random text
+        function generateText() {
+            return Array.from({ length: 50 }, () => 
+                words[Math.floor(Math.random() * words.length)]
+            ).join(' ');
+        }
+
+        // Initialize state variables
+        let originalText = generateText();
+        let typedText = '';
+        let startTime;
+        let timerInterval;
+        let testStarted = false;
+        const textDisplay = document.getElementById('text-display');
+
+        // Create text display with individual character spans
+        function createTextDisplay() {
+            textDisplay.innerHTML = '';
+            originalText.split('').forEach(char => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                span.classList.add('transition-colors', 'duration-200', 'text-gray-500', 'dark:text-gray-400');
+                textDisplay.appendChild(span);
+            });
+        }
+
+        // Update display based on typed text
+        function updateDisplay() {
+            const spans = textDisplay.querySelectorAll('span');
+            spans.forEach((span, index) => {
+                span.classList.remove('text-green-500', 'text-red-500', 'border-b-2', 'border-blue-500');
+                if (index < typedText.length) {
+                    if (typedText[index] === originalText[index]) {
+                        span.classList.add('text-green-500');
+                    } else {
+                        span.classList.add('text-red-500');
+                    }
+                } else if (index === typedText.length) {
+                    span.classList.add('border-b-2', 'border-blue-500');
+                }
+            });
+            if (typedText.length === originalText.length) {
+                endTest();
+            }
+            updateStats();
+        }
+
+        // Start the timer
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timer').textContent = `Time: ${elapsed}s`;
+            }, 1000);
+        }
+
+        // End the test
+        function endTest() {
+            clearInterval(timerInterval);
+            document.getElementById('stats').classList.add('opacity-100');
+        }
+
+        // Update WPM and accuracy stats
+        function updateStats() {
+            if (!testStarted) return;
+            const currentTime = (Date.now() - startTime) / 60000; // Time in minutes
+            let correctCharacters = 0;
+            for (let i = 0; i < typedText.length; i++) {
+                if (typedText[i] === originalText[i]) {
+                    correctCharacters++;
+                }
+            }
+            const wpm = Math.round((correctCharacters / 5) / currentTime) || 0;
+            const accuracy = typedText.length > 0 ? 
+                Math.round((correctCharacters / typedText.length) * 100) : 0;
+            document.getElementById('wpm').textContent = `WPM: ${wpm}`;
+            document.getElementById('accuracy').textContent = `Accuracy: ${accuracy}%`;
+        }
+
+        // Handle keydown events
+        window.addEventListener('keydown', (event) => {
+            const key = event.key;
+            if (key.length === 1 && typedText.length < originalText.length) {
+                if (!testStarted) {
+                    startTimer();
+                    testStarted = true;
+                }
+                typedText += key;
+                updateDisplay();
+            } else if (key === 'Backspace' && typedText.length > 0) {
+                typedText = typedText.slice(0, -1);
+                updateDisplay();
+            }
+        });
+
+        // Restart button functionality
+        document.getElementById('restart').addEventListener('click', () => {
+            originalText = generateText();
+            typedText = '';
+            testStarted = false;
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = 'Time: 0s';
+            document.getElementById('wpm').textContent = 'WPM: 0';
+            document.getElementById('accuracy').textContent = 'Accuracy: 0%';
+            document.getElementById('stats').classList.remove('opacity-100');
+            createTextDisplay();
+        });
+
+        // Light/dark mode toggle
+        document.getElementById('mode-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Initialize the display
+        createTextDisplay();
+    </script>
+</body>
+</html>

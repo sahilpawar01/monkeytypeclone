@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MonkeyType Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto Mono', monospace;
+        }
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .word {
+            margin-right: 8px;
+        }
+        .active-char {
+            position: relative;
+        }
+        .active-char:after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #e2b714;
+        }
+        .correct {
+            color: #d1d0c5;
+        }
+        .incorrect {
+            color: #ca4754;
+            text-decoration: underline;
+            text-decoration-color: #ca4754;
+        }
+        .word-wrapper {
+            display: inline-block;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300 min-h-screen flex flex-col">
+    <!-- Header with logo and navigation -->
+    <header class="flex justify-between items-center p-4 border-b border-gray-800">
+        <div class="flex items-center">
+            <div class="text-yellow-500 mr-2">
+                <i class="fas fa-keyboard text-xl"></i>
+            </div>
+            <div>
+                <div class="text-xs text-gray-500">monkey see</div>
+                <div class="text-xl font-bold">monkeytype</div>
+            </div>
+        </div>
+        <div class="flex space-x-4">
+            <button class="text-gray-500 hover:text-gray-300">
+                <i class="fas fa-keyboard"></i>
+            </button>
+            <button class="text-gray-500 hover:text-gray-300">
+                <i class="fas fa-crown"></i>
+            </button>
+            <button class="text-gray-500 hover:text-gray-300">
+                <i class="fas fa-info-circle"></i>
+            </button>
+            <button class="text-gray-500 hover:text-gray-300">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Test configuration options -->
+    <div class="flex justify-center mt-4 space-x-2 text-sm">
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">
+            <i class="fas fa-align-left mr-1"></i> punctuation
+        </button>
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">
+            <i class="fas fa-hashtag mr-1"></i> numbers
+        </button>
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">
+            <i class="far fa-clock mr-1"></i> time
+        </button>
+        <button class="px-3 py-1 rounded bg-yellow-700 text-yellow-300">
+            <i class="fas fa-font mr-1"></i> words
+        </button>
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">
+            <i class="fas fa-quote-right mr-1"></i> quote
+        </button>
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">
+            <i class="fas fa-spa mr-1"></i> zen
+        </button>
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">
+            <i class="fas fa-pen-alt mr-1"></i> custom
+        </button>
+    </div>
+
+    <div class="flex justify-center mt-2 space-x-2 text-sm">
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">10</button>
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">25</button>
+        <button class="px-3 py-1 rounded bg-yellow-700 text-yellow-300">50</button>
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">100</button>
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400">
+            <i class="fas fa-infinity"></i>
+        </button>
+    </div>
+
+    <!-- Language selector -->
+    <div class="flex justify-center mt-4">
+        <button class="px-3 py-1 rounded bg-gray-800 text-gray-400 text-sm">
+            <i class="fas fa-globe mr-1"></i> english
+        </button>
+    </div>
+
+    <!-- Main typing area -->
+    <div class="flex-grow flex items-center justify-center" tabindex="0">
+        <div class="max-w-3xl px-4">
+            <div id="text-display" class="text-lg leading-relaxed opacity-80 min-h-36 flex flex-wrap"></div>
+            <div id="stats" class="flex justify-center mt-8 opacity-0 transition-opacity duration-300">
+                <div class="flex space-x-12">
+                    <div class="text-center">
+                        <div id="wpm" class="text-4xl font-bold text-yellow-500">0</div>
+                        <div class="text-xs text-gray-500">wpm</div>
+                    </div>
+                    <div class="text-center">
+                        <div id="accuracy" class="text-4xl font-bold">0%</div>
+                        <div class="text-xs text-gray-500">accuracy</div>
+                    </div>
+                    <div class="text-center">
+                        <div id="timer" class="text-4xl font-bold">0s</div>
+                        <div class="text-xs text-gray-500">time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer with keyboard shortcuts -->
+    <footer class="p-4 text-center text-gray-500 text-sm">
+        <div class="mb-2">
+            <span class="bg-gray-800 px-2 py-1 rounded text-xs">tab</span>
+            <span class="mx-1">+</span>
+            <span class="bg-gray-800 px-2 py-1 rounded text-xs">enter</span>
+            <span class="ml-2">- restart test</span>
+        </div>
+        <div>
+            <span class="bg-gray-800 px-2 py-1 rounded text-xs">esc</span>
+            <span class="mx-1">or</span>
+            <span class="bg-gray-800 px-2 py-1 rounded text-xs">ctrl</span>
+            <span class="mx-1">+</span>
+            <span class="bg-gray-800 px-2 py-1 rounded text-xs">shift</span>
+            <span class="mx-1">+</span>
+            <span class="bg-gray-800 px-2 py-1 rounded text-xs">p</span>
+            <span class="ml-2">- command line</span>
+        </div>
+        <div class="mt-4 flex justify-center space-x-6">
+            <a href="#" class="hover:text-gray-300"><i class="fas fa-envelope mr-1"></i>contact</a>
+            <a href="#" class="hover:text-gray-300"><i class="fas fa-question-circle mr-1"></i>support</a>
+            <a href="#" class="hover:text-gray-300"><i class="fab fa-github mr-1"></i>github</a>
+            <a href="#" class="hover:text-gray-300"><i class="fab fa-discord mr-1"></i>discord</a>
+            <a href="#" class="hover:text-gray-300"><i class="fab fa-twitter mr-1"></i>twitter</a>
+        </div>
+    </footer>
+
+    <script>
+        // Array of common words for random generation
+        const words = ['very', 'where', 'should', 'in', 'ask', 'since', 'leave', 'much', 'come', 'might', 'under', 'school', 
+                      'not', 'off', 'up', 'during', 'day', 'play', 'few', 'right', 'life', 'man', 'out', 'how', 'with', 'other', 
+                      'small', 'another', 'up', 'be', 'with', 'still', 'way', 'during', 'there', 'these', 'own', 'no', 'seem', 
+                      'the', 'of', 'and', 'a', 'in', 'that', 'have', 'I', 'it', 'for', 'on', 'with', 'he', 'as', 'you', 'do', 'at'];
+
+        // Function to generate random text
+        function generateText(count = 50) {
+            return Array.from({length: count}, () => words[Math.floor(Math.random() * words.length)]);
+        }
+
+        // Initialize state variables
+        let wordList = generateText();
+        let currentWordIndex = 0;
+        let currentCharIndex = 0;
+        let totalKeystrokes = 0;
+        let correctKeystrokes = 0;
+        let timerInterval;
+        let startTime;
+        let testActive = false;
+        let typedChars = [];
+        const textDisplay = document.getElementById('text-display');
+
+        // Function to create and display the text with words and characters
+        function createTextDisplay() {
+            textDisplay.innerHTML = '';
+            
+            wordList.forEach((word, wordIndex) => {
+                const wordWrapper = document.createElement('div');
+                wordWrapper.classList.add('word-wrapper');
+                
+                const wordSpan = document.createElement('span');
+                wordSpan.classList.add('word');
+                wordSpan.dataset.wordIndex = wordIndex;
+                
+                word.split('').forEach((char, charIndex) => {
+                    const charSpan = document.createElement('span');
+                    charSpan.textContent = char;
+                    charSpan.dataset.charIndex = charIndex;
+                    
+                    if (wordIndex === 0 && charIndex === 0) {
+                        charSpan.classList.add('active-char');
+                    }
+                    
+                    wordSpan.appendChild(charSpan);
+                });
+                
+                wordWrapper.appendChild(wordSpan);
+                textDisplay.appendChild(wordWrapper);
+            });
+        }
+
+        // Function to handle typing
+        function handleTyping(event) {
+            const key = event.key;
+            
+            // Start timer on first keystroke
+            if (!testActive) {
+                testActive = true;
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+                document.getElementById('stats').classList.add('opacity-0');
+            }
+            
+            if (key === 'Escape' || (event.ctrlKey && event.shiftKey && key.toLowerCase() === 'p')) {
+                // Command line shortcut
+                return;
+            }
+            
+            if ((key === 'Tab' && event.key === 'Enter') || 
+                (key === 'Tab' && event.getModifierState('Enter'))) {
+                // Restart test
+                event.preventDefault();
+                restartTest();
+                return;
+            }
+            
+            if (key === ' ') {
+                // Space key moves to next word
+                event.preventDefault();
+                
+                // Move to next word if there are more words
+                if (currentWordIndex < wordList.length - 1) {
+                    // Check if current word was typed correctly
+                    checkWord();
+                    
+                    // Move to next word
+                    currentWordIndex++;
+                    currentCharIndex = 0;
+                    
+                    // Mark the first character of the new word as active
+                    updateActiveCharacter();
+                }
+                
+                return;
+            }
+            
+            if (key === 'Backspace') {
+                event.preventDefault();
+                
+                // Handle backspace
+                if (currentCharIndex > 0) {
+                    currentCharIndex--;
+                    updateActiveCharacter();
+                    
+                    // Remove last typed character from the array
+                    typedChars.pop();
+                }
+                
+                return;
+            }
+            
+            // Handle normal key press (single character)
+            if (key.length === 1) {
+                totalKeystrokes++;
+                typedChars.push(key);
+                
+                // Check if typed character matches the current character
+                const currentWord = wordList[currentWordIndex];
+                const currentChar = currentWord[currentCharIndex];
+                
+                const allWordSpans = textDisplay.querySelectorAll('.word');
+                const currentWordSpan = allWordSpans[currentWordIndex];
+                const currentCharSpan = currentWordSpan.children[currentCharIndex];
+                
+                if (key === currentChar) {
+                    correctKeystrokes++;
+                    currentCharSpan.classList.add('correct');
+                } else {
+                    currentCharSpan.classList.add('incorrect');
+                }
+                
+                // Move to next character
+                currentCharIndex++;
+                
+                // Check if we've reached the end of the word
+                if (currentCharIndex === currentWord.length) {
+                    // If this is the last word, end the test
+                    if (currentWordIndex === wordList.length - 1) {
+                        endTest();
+                        return;
+                    }
+                } else {
+                    // Update active character position
+                    updateActiveCharacter();
+                }
+            }
+        }
+        
+        // Update which character is currently active (underlined)
+        function updateActiveCharacter() {
+            // Remove active class from all characters
+            document.querySelectorAll('.active-char').forEach(span => {
+                span.classList.remove('active-char');
+            });
+            
+            // Add active class to current character
+            const allWordSpans = textDisplay.querySelectorAll('.word');
+            if (currentWordIndex < allWordSpans.length) {
+                const currentWordSpan = allWordSpans[currentWordIndex];
+                if (currentCharIndex < currentWordSpan.children.length) {
+                    const currentCharSpan = currentWordSpan.children[currentCharIndex];
+                    currentCharSpan.classList.add('active-char');
+                }
+            }
+        }
+        
+        // Check if current word was typed correctly
+        function checkWord() {
+            const currentWord = wordList[currentWordIndex];
+            const typedWord = typedChars.slice(0, currentWord.length).join('');
+            
+            // Reset typed characters for next word
+            typedChars = [];
+        }
+
+        // Update timer display every second
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timer').textContent = `${elapsed}s`;
+            
+            // Also update WPM in real-time
+            updateWPM();
+        }
+        
+        // Update WPM in real-time
+        function updateWPM() {
+            const timeInMinutes = (Date.now() - startTime) / 60000;
+            const wpm = Math.round((correctKeystrokes / 5) / timeInMinutes);
+            document.getElementById('wpm').textContent = wpm;
+            
+            // Update accuracy
+            const accuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100) || 0;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+        }
+
+        // End the test and show results
+        function endTest() {
+            clearInterval(timerInterval);
+            testActive = false;
+            
+            // Show the stats
+            document.getElementById('stats').classList.remove('opacity-0');
+            document.getElementById('stats').classList.add('opacity-100');
+            
+            // Final WPM and accuracy calculation
+            updateWPM();
+        }
+
+        // Restart test
+        function restartTest() {
+            // Reset state variables
+            wordList = generateText();
+            currentWordIndex = 0;
+            currentCharIndex = 0;
+            totalKeystrokes = 0;
+            correctKeystrokes = 0;
+            typedChars = [];
+            testActive = false;
+            
+            // Clear timer
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = '0s';
+            document.getElementById('wpm').textContent = '0';
+            document.getElementById('accuracy').textContent = '0%';
+            
+            // Hide stats
+            document.getElementById('stats').classList.remove('opacity-100');
+            document.getElementById('stats').classList.add('opacity-0');
+            
+            // Reset display
+            createTextDisplay();
+        }
+
+        // Add event listeners
+        document.addEventListener('keydown', handleTyping);
+        
+        // Initialize the text display on load
+        createTextDisplay();
+    </script>
+</body>
+</html>
