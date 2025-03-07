@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MonkeyType Clone</title>
+    <!-- Include Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Main container centered on the page -->
+    <div class="flex justify-center items-center h-screen">
+        <!-- Typing area card -->
+        <div class="bg-white p-8 rounded shadow-md w-full max-w-2xl">
+            <!-- Text to type -->
+            <div id="text-display" class="font-mono text-xl mb-4"></div>
+            <!-- Input area -->
+            <textarea id="input-area" class="font-mono text-xl w-full p-2 border rounded" rows="3"></textarea>
+            <!-- Timer display -->
+            <div id="timer" class="mt-4 text-center text-gray-600"></div>
+            <!-- Results display -->
+            <div id="results" class="mt-4 text-center"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript for functionality -->
+    <script>
+        // Sample text to type
+        const originalText = "The quick brown fox jumps over the lazy dog.";
+        const textDisplay = document.getElementById('text-display');
+        const inputArea = document.getElementById('input-area');
+        const timerDiv = document.getElementById('timer');
+        const resultsDiv = document.getElementById('results');
+
+        // Split the text into individual characters and create spans
+        originalText.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            span.classList.add('text-gray-500'); // Default untyped color
+            textDisplay.appendChild(span);
+        });
+
+        let startTime;
+        let timerInterval;
+
+        // Function to update the timer display
+        function updateTimer() {
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            timerDiv.textContent = `Time: ${elapsedTime}s`;
+        }
+
+        // Event listener for input changes
+        inputArea.addEventListener('input', () => {
+            const typedText = inputArea.value;
+            const spans = textDisplay.querySelectorAll('span');
+
+            // Start timer on first character
+            if (typedText.length === 1) {
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+
+            // Update each character's style
+            spans.forEach((span, index) => {
+                // Remove all previous classes
+                span.classList.remove('text-green-500', 'text-red-500', 'text-gray-500', 'border-b-2', 'border-blue-500');
+                if (index < typedText.length) {
+                    // Character has been typed
+                    if (typedText[index] === originalText[index]) {
+                        span.classList.add('text-green-500'); // Correct
+                    } else {
+                        span.classList.add('text-red-500'); // Incorrect
+                    }
+                } else {
+                    // Character not yet typed
+                    span.classList.add('text-gray-500');
+                }
+            });
+
+            // Highlight the current character to type
+            if (typedText.length < originalText.length) {
+                spans[typedText.length].classList.add('border-b-2', 'border-blue-500');
+            }
+
+            // Test completion
+            if (typedText.length === originalText.length) {
+                clearInterval(timerInterval);
+                const timeInSeconds = (Date.now() - startTime) / 1000;
+                const correctCount = [...typedText].filter((char, i) => char === originalText[i]).length;
+                const wpm = Math.round((correctCount / 5) / (timeInSeconds / 60)); // WPM calculation
+                const accuracy = Math.round((correctCount / originalText.length) * 100); // Accuracy percentage
+                resultsDiv.innerHTML = `WPM: ${wpm} | Accuracy: ${accuracy}%`;
+                inputArea.disabled = true; // Disable input after completion
+            }
+        });
+    </script>
+</body>
+</html>
