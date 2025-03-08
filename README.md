@@ -26,5 +26,24 @@ A simple yet effective typing test clone inspired by [monkeytype.com](https://mo
 ## 💻 How to Run
 1. Clone the repository:
    ```bash
-   [git clone <repository-link>](https://github.com/sahilpawar01/monkeytypeclone.git)
+   git clone https://github.com/sahilpawar01/monkeytypeclone.git
    cd monkeytype-clone
+
+🤝 Contributions
+Contributions are welcome! Feel free to:
+
+Fix bugs 🐞
+Improve UI/UX 🎨
+Add new features ✨
+Simply fork the repo, create a new branch, and submit a PR. Let's build this together! 🚀
+
+⭐ Star the Repository
+If you like this project, don't forget to star it! 🌟
+
+less
+Copy
+Edit
+
+### 🔽 [Download the `.md` file directly](sandbox:/mnt/data/monkeytype-clone-readme.md)
+
+If you’d like badges, GIFs, or extra styling elements, I can enhance it further! 🚀
