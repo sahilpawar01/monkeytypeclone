@@ -44,6 +44,3 @@ less
 Copy
 Edit
 
-### 🔽 [Download the `.md` file directly](sandbox:/mnt/data/monkeytype-clone-readme.md)
-
-If you’d like badges, GIFs, or extra styling elements, I can enhance it further! 🚀
