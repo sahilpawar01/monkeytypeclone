@@ -26,5 +26,5 @@ A simple yet effective typing test clone inspired by [monkeytype.com](https://mo
 ## 💻 How to Run
 1. Clone the repository:
    ```bash
-   git clone <repository-link>
+   [git clone <repository-link>](https://github.com/sahilpawar01/monkeytypeclone.git)
    cd monkeytype-clone
